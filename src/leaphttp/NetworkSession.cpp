@@ -17,7 +17,7 @@ NetworkSession::NetworkSession() :
   m_list(nullptr),
   m_receivedContinue(false),
   m_receivedHeader(false),
-  m_state(STATE_INITIALIZING)
+  m_state(STATE_TERMINATED)
 {
   m_networkSessionManager.NotifyWhenAutowired([this] {
     static const std::string cert_DigiCert_High_Assurance_EV_Root_CA =
@@ -378,19 +378,18 @@ void NetworkSession::shutdown()
 
 bool NetworkSession::setState(State state)
 {
-  std::lock_guard<std::mutex> stateLock(m_stateMutex);
+  State current = m_state;
 
-  if (state > m_state || (m_state == STATE_TERMINATED && state == STATE_INITIALIZING)) {
-    m_state = state;
-    return true;
+  while (state > current || (current == STATE_TERMINATED && state == STATE_INITIALIZING)) {
+    if (m_state.compare_exchange_strong(current, state)) {
+      return true;
+    }
   }
   return false;
 }
 
 bool NetworkSession::isState(State state) const
 {
-  std::lock_guard<std::mutex> stateLock(m_stateMutex);
-
   return (m_state == state);
 }
 

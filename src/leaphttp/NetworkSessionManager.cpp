@@ -190,5 +190,9 @@ void NetworkSessionManager::Run()
 void NetworkSessionManager::OnStop(bool)
 {
   std::lock_guard<std::recursive_mutex> sessionLock(m_sessionMutex);
+  for (auto* session : m_sessions) {
+    if (session)
+      session->cancel();
+  }
   m_sessionCondition.notify_all();
 }
