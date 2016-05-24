@@ -8,6 +8,7 @@
 #include "Cookie.h"
 #include <autowiring/Autowired.h>
 
+#include <atomic>
 #include <queue>
 #include <curl/curl.h>
 
@@ -53,7 +54,6 @@ class NetworkSession final {
     static CURLcode caCertificatesStatic(CURL* curl, void* sslCtx, void* parm);
 
     Autowired<NetworkSessionManager> m_networkSessionManager;
-    mutable std::mutex m_stateMutex;
     mutable std::mutex m_proxyMutex;
     std::mutex m_headerMutex;
     std::condition_variable m_headerCondition;
@@ -68,7 +68,7 @@ class NetworkSession final {
     int m_responseStatus;
     bool m_receivedContinue;
     bool m_receivedHeader;
-    State m_state;
+    std::atomic<State> m_state;
     Url m_url;
 
     friend class NetworkSessionManager;
