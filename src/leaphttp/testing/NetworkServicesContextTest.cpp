@@ -98,7 +98,6 @@ TEST_F(NetworkServicesContextTest, VerifyHttpGetTransfers)
 {
   const char* sites[] = {
     "http://www.abebooks.com/",
-    "http://www.amazon.com/",
     "http://www.cnn.com/",
     "http://www.msn.com/",
     "http://www.walgreens.com/"
@@ -241,7 +240,6 @@ TEST_F(NetworkServicesContextTest, VerifyHttpSimultaneousTransfers)
 {
   const char* sites[] = {
     "http://www.abebooks.com/",
-    "http://www.amazon.com/",
     "http://www.cnn.com/",
     "http://www.msn.com/",
     "http://www.walgreens.com/"
