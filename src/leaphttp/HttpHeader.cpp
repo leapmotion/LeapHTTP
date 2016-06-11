@@ -2,7 +2,8 @@
 #include "stdafx.h"
 #include "HttpHeader.h"
 
-HttpHeader::HttpHeader()
+HttpHeader::HttpHeader(std::string userAgent) :
+  m_userAgent(std::move(userAgent))
 {
 }
 
@@ -119,15 +120,10 @@ void HttpHeader::setCookies(const std::set<Cookie>& cookies)
 
 std::string HttpHeader::userAgent() const
 {
-  if (m_userAgent.empty()) {
-    static std::string s_userAgent = std::string("Leap Motion");
-
-    return s_userAgent;
-  }
   return m_userAgent;
 }
 
-void HttpHeader::setUserAgent(const std::string& userAgent)
+void HttpHeader::setUserAgent(std::string userAgent)
 {
-  m_userAgent = userAgent;
+  m_userAgent = std::move(userAgent);
 }

@@ -2,14 +2,6 @@
 #include "stdafx.h"
 #include "HttpResponse.h"
 
-HttpResponse::HttpResponse() : m_status(0), m_contentLength(0)
-{
-}
-
-HttpResponse::~HttpResponse()
-{
-}
-
 Url HttpResponse::url() const
 {
   return m_url;

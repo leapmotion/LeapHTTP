@@ -4,29 +4,42 @@
 #include "HttpTransferGetStream.h"
 #include <fstream>
 
-class FileStreamWrapper {
-  public:
-    FileStreamWrapper(const std::string& filename) : m_ofs(filename.c_str(), std::ofstream::binary) {}
-    std::ofstream& ofstream() { return m_ofs; }
-  private:
-    std::ofstream m_ofs;
+class FileStreamWrapper
+{
+public:
+  FileStreamWrapper(const std::string& filename) :
+    m_ofs(filename.c_str(), std::ofstream::binary)
+  {}
+
+  std::ofstream& ofstream() { return m_ofs; }
+
+private:
+  std::ofstream m_ofs;
 };
 
-class HttpTransferDownload : private FileStreamWrapper, public HttpTransferGetStream
+class HttpTransferDownload:
+  private FileStreamWrapper,
+  public HttpTransferGetStream
 {
-  public:
-    HttpTransferDownload(const Url& url, const std::string& filename) : FileStreamWrapper(filename), HttpTransferGetStream(url, ofstream()) {
-      if (!ofstream().good()) {
-        cancel();
-      }
+public:
+  HttpTransferDownload(std::string userAgent, const Url& url, const std::string& filename) :
+    FileStreamWrapper(filename),
+    HttpTransferGetStream(std::move(userAgent), url, ofstream())
+  {
+    if (!ofstream().good()) {
+      cancel();
     }
+  }
 
-    virtual void onFinished() override { close(); }
-    virtual void onCanceled() override { cancel(); }
-    virtual void onError(int error) override { close(); }
+  void onFinished() override { close(); }
+  void onCanceled() override { cancel(); }
+  void onError(int error) override { close(); }
 
-    virtual void cancel() override { HttpTransferGetStream::cancel(); close(); }
+  void cancel() override {
+    HttpTransferGetStream::cancel();
+    close();
+  }
 
-  private:
-    void close() { ofstream().close(); }
+private:
+  void close() { ofstream().close(); }
 };
