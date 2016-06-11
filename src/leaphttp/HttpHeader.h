@@ -13,7 +13,8 @@
 
 class HttpHeader {
   public:
-    HttpHeader();
+    HttpHeader(void) = default;
+    HttpHeader(std::string userAgent);
     virtual ~HttpHeader();
 
     bool hasHeader(const std::string& key) const;
@@ -30,7 +31,7 @@ class HttpHeader {
     void setCookies(const std::set<Cookie>& cookies);
 
     std::string userAgent() const;
-    void setUserAgent(const std::string& userAgent);
+    void setUserAgent(std::string userAgent);
 
   private:
     struct CaseInsensitve {

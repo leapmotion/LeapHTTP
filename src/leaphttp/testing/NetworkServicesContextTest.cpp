@@ -4,6 +4,7 @@
 #include <leaphttp/NetworkSession.h>
 #include <leaphttp/NetworkTransferManager.h>
 #include <leaphttp/HttpTransferDownload.h>
+#include <leaphttp/HttpTransferPostString.h>
 #include FILESYSTEM_HEADER
 
 #include <gtest/gtest.h>
@@ -12,7 +13,18 @@
 
 using std::size_t;
 
-class NetworkServicesContextTest : public testing::Test {
+class DefaultHttpRequest :
+  public HttpRequest
+{
+public:
+  DefaultHttpRequest(Url url) :
+    HttpRequest("Leap", std::move(url))
+  {}
+};
+
+class NetworkServicesContextTest :
+  public testing::Test
+{
   public:
     NetworkServicesContextTest() {
       // Force initialization of the path parsing subsystems
@@ -24,7 +36,7 @@ class NetworkServicesContextTest : public testing::Test {
       AutoCurrentContext()->Wait();
     }
 
-    
+
     static std::wstring MakeRandomName(void) {
       static uint32_t s_counter = 0;
       std::wostringstream oss;
@@ -46,52 +58,55 @@ class NetworkServicesContextTest : public testing::Test {
     AutoRequired<NetworkTransferManager> m_networkTransferManager;
 };
 
-class HttpTransferGetTest : public HttpTransferBase
+class HttpTransferGetTest :
+  public HttpTransferBase
 {
-  public:
-    HttpTransferGetTest(const Url& url) : m_contentLength(0), m_done(false), m_success(false) {
-      HttpRequest& request = this->request();
-      request.setUrl(url);
-      request.setUserAgent("Mozilla/5.0 (Linux; U; Android 2.3; en-us) AppleWebKit/999+ (KHTML, like Gecko) Safari/999.9");
-      request.setMethod(HttpRequest::HTTP_GET);
-    }
-    virtual ~HttpTransferGetTest() {}
+public:
+  HttpTransferGetTest(const Url& url) :
+    HttpTransferBase{ { "Leap Motion", url } }
+  {
+    HttpRequest& request = this->request();
+    request.setUrl(url);
+    request.setUserAgent("Mozilla/5.0 (Linux; U; Android 2.3; en-us) AppleWebKit/999+ (KHTML, like Gecko) Safari/999.9");
+    request.setMethod(HttpRequest::HTTP_GET);
+  }
+  virtual ~HttpTransferGetTest() {}
 
-    size_t onRead(const char* buffer, size_t bufferSize) override {
-      if (m_done) {
-        return 0;
-      } else {
-        m_contentLength += bufferSize;
-        return bufferSize;
-      }
+  size_t onRead(const char* buffer, size_t bufferSize) override {
+    if (m_done) {
+      return 0;
+    } else {
+      m_contentLength += bufferSize;
+      return bufferSize;
     }
-    void onFinished() override { setDone(true); }
-    void onCanceled() override { setDone(false); }
-    void onError(int error) override { setDone(false); }
+  }
+  void onFinished() override { setDone(true); }
+  void onCanceled() override { setDone(false); }
+  void onError(int error) override { setDone(false); }
 
-    bool waitForCompletion(const std::chrono::milliseconds& timeout = std::chrono::minutes(1)) {
-      std::unique_lock<std::mutex> lock(m_mutex);
-      m_condition.wait_for(lock, timeout, [this] { return m_done; });
-      return m_success && m_done;
-    }
+  bool waitForCompletion(const std::chrono::milliseconds& timeout = std::chrono::minutes(1)) {
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_condition.wait_for(lock, timeout, [this] { return m_done; });
+    return m_success && m_done;
+  }
 
-    size_t receivedContentLength() const {
-      return m_contentLength;
-    }
+  size_t receivedContentLength() const {
+    return m_contentLength;
+  }
 
-  private:
-    void setDone(bool success) {
-      std::unique_lock<std::mutex> lock(m_mutex);
-      m_success = success;
-      m_done = true;
-      m_condition.notify_all();
-    }
+private:
+  void setDone(bool success) {
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_success = success;
+    m_done = true;
+    m_condition.notify_all();
+  }
 
-    mutable std::mutex m_mutex;
-    std::condition_variable m_condition;
-    size_t m_contentLength;
-    bool m_done;
-    bool m_success;
+  mutable std::mutex m_mutex;
+  std::condition_variable m_condition;
+  size_t m_contentLength = 0;
+  bool m_done = false;
+  bool m_success = false;
 };
 
 TEST_F(NetworkServicesContextTest, VerifyHttpGetTransfers)
@@ -124,7 +139,7 @@ class HttpTransferDownloadTest :
 {
 public:
   HttpTransferDownloadTest(const Url& url, const std::string& filename) :
-    HttpTransferDownload(url, filename),
+    HttpTransferDownload("Leap Motion", url, filename),
     m_filename(filename)
   {}
 
@@ -141,7 +156,13 @@ public:
 
   bool waitForCompletion(const std::chrono::milliseconds& timeout = std::chrono::minutes(1)) {
     std::unique_lock<std::mutex> lock(m_mutex);
-    m_condition.wait_for(lock, timeout, [this] { return m_done; });
+    m_condition.wait_for(
+      lock,
+      timeout,
+      [this] {
+        return m_done;
+      }
+    );
     return m_success;
   }
 
@@ -152,6 +173,7 @@ private:
     m_success = success;
     m_condition.notify_all();
   }
+
   std::string m_filename;
   mutable std::mutex m_mutex;
   std::condition_variable m_condition;
@@ -170,7 +192,7 @@ TEST_F(NetworkServicesContextTest, VerifyHttpDownloadBadFilename)
     )
   );
 
-  EXPECT_FALSE(transfer->waitForCompletion(std::chrono::seconds(30)));
+  ASSERT_FALSE(transfer->waitForCompletion(std::chrono::seconds(30)));
 }
 
 TEST_F(NetworkServicesContextTest, VerifyHttpDownloadBadHost)
@@ -217,13 +239,13 @@ TEST_F(NetworkServicesContextTest, VerifyHttpDownload)
     )
   );
 
-  EXPECT_TRUE(transfer->waitForCompletion(std::chrono::seconds(30)));
+  ASSERT_TRUE(transfer->waitForCompletion(std::chrono::seconds(30)));
 }
 
 TEST_F(NetworkServicesContextTest, VerifyHttpsGetFailure)
 {
   NetworkSession session;
-  HttpRequest request(Url("https://www.google.com/"));
+  DefaultHttpRequest request(Url("https://www.google.com/"));
 
   request.setMethod(HttpRequest::HTTP_GET);
   request.setHeader("Accept", "application/json");
@@ -244,46 +266,34 @@ TEST_F(NetworkServicesContextTest, VerifyHttpSimultaneousTransfers)
     "http://www.msn.com/",
     "http://www.walgreens.com/"
   };
-  const int numSites = sizeof(sites)/sizeof(sites[0]);
-  std::thread threads[numSites];
 
-  AutoCurrentContext ctxt;
+  for (auto site : sites) {
+    NetworkSession session;
+    HttpRequest request("Leap Motion", Url{ site });
 
-  for (int i = 0; i < numSites; i++)
-    threads[i] = std::thread {
-      [&ctxt](const std::string& url) {
-        CurrentContextPusher pshr(ctxt);
-        NetworkSession session;
-        HttpRequest request(url);
+    request.setMethod(HttpRequest::HTTP_GET);
+    request.setUserAgent("Mozilla/5.0 (iPad; U; CPU OS 3_2_1 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Mobile/7B405");
+    HttpResponse response;
 
-        request.setMethod(HttpRequest::HTTP_GET);
-        request.setUserAgent("Mozilla/5.0 (iPad; U; CPU OS 3_2_1 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Mobile/7B405");
-        HttpResponse response;
+    std::ostream& ostr = session.sendRequest(request);
+    ASSERT_FALSE(ostr.good()); // Cannot write to a GET request
 
-        std::ostream& ostr = session.sendRequest(request);
-        EXPECT_FALSE(ostr.good()); // Cannot write to a GET request
+    std::istream& istr = session.receiveResponse(response, std::chrono::minutes(1));
+    ASSERT_TRUE(istr.good()) << "Unexpected stream state " << site;
+    ASSERT_EQ(200, response.status()) << "Unexpected response from " << site;
+    ASSERT_EQ("OK", response.reason()) << "Unexpected response from " << site;
 
-        std::istream& istr = session.receiveResponse(response, std::chrono::minutes(1));
-        EXPECT_TRUE(istr.good()) << "Unexpected stream state " << url;
-        EXPECT_EQ(200, response.status()) << "Unexpected response from " << url;
-        EXPECT_EQ("OK", response.reason()) << "Unexpected response from " << url;
-
-        char buffer[4096];
-        while (istr.good()) {
-          istr.read(buffer, sizeof(buffer));
-        }
-      },
-      sites[i]
-    };
-
-  for (int i = 0; i < numSites; i++)
-    threads[i].join();
+    char buffer[4096];
+    while (istr.good()) {
+      istr.read(buffer, sizeof(buffer));
+    }
+  }
 }
 
 TEST_F(NetworkServicesContextTest, VerifyHttpsGet)
 {
   NetworkSession session;
-  HttpRequest request(Url("https://warehouse.leapmotion.com/api/v1/apps/consumer-bundle/metadata"));
+  DefaultHttpRequest request(Url("https://warehouse.leapmotion.com/api/v1/apps/consumer-bundle/metadata"));
 
   request.setMethod(HttpRequest::HTTP_GET);
   request.setHeader("Accept", "application/json");
@@ -322,7 +332,7 @@ TEST_F(NetworkServicesContextTest, VerifyHttpsGet)
 TEST_F(NetworkServicesContextTest, VerifyHttpsGetWithCachedCertificates)
 {
   NetworkSession session;
-  HttpRequest request(Url("https://warehouse.leapmotion.com/api/v1/apps/consumer-bundle/metadata"));
+  DefaultHttpRequest request(Url("https://warehouse.leapmotion.com/api/v1/apps/consumer-bundle/metadata"));
 
   request.setMethod(HttpRequest::HTTP_GET);
   request.setHeader("Accept", "application/json");
@@ -340,7 +350,7 @@ TEST_F(NetworkServicesContextTest, VerifyHttpsGetWithCachedCertificates)
 TEST_F(NetworkServicesContextTest, VerifyHttpsGetMultipleWithSameSession)
 {
   NetworkSession session;
-  HttpRequest request(Url("https://warehouse.leapmotion.com/api/v1/apps/consumer-bundle/metadata"));
+  DefaultHttpRequest request(Url("https://warehouse.leapmotion.com/api/v1/apps/consumer-bundle/metadata"));
 
   request.setMethod(HttpRequest::HTTP_GET);
   request.setHeader("Accept", "application/json");
@@ -379,7 +389,7 @@ TEST_F(NetworkServicesContextTest, VerifyHttpsGetMultipleWithSameSession)
 TEST_F(NetworkServicesContextTest, VerifyHttpRedirect)
 {
   NetworkSession session;
-  HttpRequest request(Url("http://warehouse.leapmotion.com/api/v1/apps/consumer-bundle/metadata"));
+  DefaultHttpRequest request(Url("http://warehouse.leapmotion.com/api/v1/apps/consumer-bundle/metadata"));
 
   request.setMethod(HttpRequest::HTTP_GET);
   request.setHeader("Accept", "application/json");
@@ -400,7 +410,7 @@ TEST_F(NetworkServicesContextTest, VerifyHttpRedirect)
 TEST_F(NetworkServicesContextTest, VerifyHttpsMultipleSessions)
 {
   NetworkSession session1, session2;
-  HttpRequest request(Url("https://warehouse.leapmotion.com/api/v1/apps/consumer-bundle/metadata"));
+  DefaultHttpRequest request(Url("https://warehouse.leapmotion.com/api/v1/apps/consumer-bundle/metadata"));
 
   request.setMethod(HttpRequest::HTTP_GET);
   request.setHeader("Accept", "application/json");
@@ -431,7 +441,7 @@ TEST_F(NetworkServicesContextTest, VerifyRepeatedCancel)
   for (int i = 0; i < 2; i++) { // Try with a fresh session a couple of times
     NetworkSession session;
     for (int j = 0; j < 2; j++) { // Then use the same session a couple of times
-      HttpRequest request(Url("http://cachefly.cachefly.net/100mb.test"));
+      DefaultHttpRequest request(Url("http://cachefly.cachefly.net/100mb.test"));
 
       request.setUserAgent("Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)");
       request.setMethod(HttpRequest::HTTP_GET);

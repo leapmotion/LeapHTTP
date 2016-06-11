@@ -3,7 +3,8 @@
 #include "HttpRequest.h"
 #include "Cookie.h"
 
-HttpRequest::HttpRequest(const Url& url, const std::string& method) :
+HttpRequest::HttpRequest(std::string userAgent, const Url& url, const std::string& method) :
+  HttpHeader(std::move(userAgent)),
   m_url(url),
   m_method(method),
   m_contentLength(0),
