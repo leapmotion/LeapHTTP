@@ -10,7 +10,6 @@ set(LeapHTTP_SRCS
   HttpResponse.h
   HttpTransferBase.h
   HttpTransferDownload.h
-  HttpTransferGetJSON.h
   HttpTransferGetStream.h
   HttpTransferPostString.h
   HttpTransferWorker.cpp
