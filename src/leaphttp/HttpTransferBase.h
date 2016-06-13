@@ -43,7 +43,7 @@ private:
   HttpRequest m_httpRequest;
   HttpResponse m_httpResponse;
 
-  std::atomic<bool> m_canceled = false;
+  std::atomic<bool> m_canceled{ false };
 
   friend class HttpTransferWorker;
 };
