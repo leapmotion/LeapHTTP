@@ -1,5 +1,5 @@
 language: cpp
-sudo: required
+sudo: false
 dist: trusty
 
 matrix:
@@ -20,6 +20,7 @@ matrix:
         packages:
           - gcc-4.9
           - g++-4.9
+          - libcurl3
   - os: osx
     env:
     - _CC: clang
@@ -46,6 +47,7 @@ install:
   - popd
 
 before_script:
+  - curl --version
   - export CC=$_CC
   - export CXX=$_CXX
   - $CXX --version
