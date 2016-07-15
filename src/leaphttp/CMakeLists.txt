@@ -28,7 +28,7 @@ set(LeapHTTP_SRCS
   Url.h
 )
 
-add_pch(NetworkServices_SRCS "stdafx.h" "stdafx.cpp")
+add_pch(LeapHTTP_SRCS "stdafx.h" "stdafx.cpp")
 add_library(LeapHTTP ${LeapHTTP_SRCS})
 
 target_link_libraries(
