@@ -1,1 +1,1 @@
-set(LeapHTTP_VERSION 0.1.0)
+set(LeapHTTP_VERSION 0.1.1)
