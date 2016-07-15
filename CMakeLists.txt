@@ -16,7 +16,7 @@ find_package(OpenSSL REQUIRED)
 
 # Standard dependencies:
 find_package(autowiring 1.0.3 REQUIRED)
-find_package(ZLIB 1.2.8 REQUIRED)
+find_package(ZLIB 1.2.0 REQUIRED)
 find_package(CURL 7.36.0 REQUIRED)
 
 # We have unit test projects via googletest, they're added in the places where they are defined
