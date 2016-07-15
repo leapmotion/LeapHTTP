@@ -59,7 +59,7 @@ script:
   - >
     ~/etc/$CMAKE_DIRNAME/bin/cmake .
     -DCMAKE_BUILD_TYPE=Release
-    -DAutowiring_DIR:PATH=~/etc/$AUTOWIRING_DIRNAME
+    -DCMAKE_PREFIX_PATH:PATH=~/etc/
   - make -j 4 LeapResourceTest || make LeapResourceTest
   - ctest --output-on-failure --timeout 30
 
