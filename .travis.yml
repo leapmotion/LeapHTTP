@@ -8,8 +8,8 @@ matrix:
     env:
     - _CC: gcc-4.9
     - _CXX: g++-4.9
-    - CMAKE_URL=https://cmake.org/files/v3.4/cmake-3.4.0-Linux-i386.tar.gz
-    - CMAKE_DIRNAME=cmake-3.4.0-Linux-i386
+    - CMAKE_URL=https://cmake.org/files/v3.4/cmake-3.4.0-Linux-x86_64.tar.gz
+    - CMAKE_DIRNAME=cmake-3.4.0-Linux-x86_64
     - AUTOWIRING_URL=https://github.com/leapmotion/autowiring/releases/download/v1.0.3/autowiring-1.0.3-Linux-amd64.tar.gz
     - AUTOWIRING_DIRNAME=autowiring-1.0.3-Linux
     addons:
