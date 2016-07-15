@@ -15,7 +15,7 @@ set(OPENSSL_ROOT_DIR ${CMAKE_PREFIX_PATH}/openssl)
 find_package(OpenSSL REQUIRED)
 
 # Standard dependencies:
-find_package(autowiring 1.0.2 REQUIRED)
+find_package(autowiring 1.0.3 REQUIRED)
 find_package(ZLIB 1.2.8 REQUIRED)
 find_package(CURL 7.36.0 REQUIRED)
 
