@@ -1,5 +1,6 @@
 language: cpp
-sudo: false
+sudo: required
+dist: trusty
 
 matrix:
   include:
@@ -7,7 +8,7 @@ matrix:
     env:
     - _CC: gcc-4.9
     - _CXX: g++-4.9
-    - CMAKE_URL=http://cmake.org/files/v3.4/cmake-3.4.0-Linux-i386.tar.gz
+    - CMAKE_URL=https://cmake.org/files/v3.4/cmake-3.4.0-Linux-i386.tar.gz
     - CMAKE_DIRNAME=cmake-3.4.0-Linux-i386
     - AUTOWIRING_URL=https://github.com/leapmotion/autowiring/releases/download/v1.0.3/autowiring-1.0.3-Linux-amd64.tar.gz
     - AUTOWIRING_DIRNAME=autowiring-1.0.3-Linux
@@ -19,16 +20,11 @@ matrix:
         packages:
           - gcc-4.9
           - g++-4.9
-          - libc6-i386
-          - libboost-program-options1.55-dev
-          - libboost1.55-all-dev
-          - libcurl4-openssl-dev
-          - zlib1g-dev
   - os: osx
     env:
     - _CC: clang
     - _CXX: clang++
-    - CMAKE_URL=http://cmake.org/files/v3.4/cmake-3.4.0-Darwin-x86_64.tar.gz
+    - CMAKE_URL=https://cmake.org/files/v3.4/cmake-3.4.0-Darwin-x86_64.tar.gz
     - CMAKE_DIRNAME=cmake-3.4.0-Darwin-x86_64/CMake.app/Contents
     - AUTOWIRING_URL=https://github.com/leapmotion/autowiring/releases/download/v1.0.3/autowiring-1.0.3-Darwin.tar.gz
     - AUTOWIRING_DIRNAME=autowiring-1.0.3-Darwin
@@ -42,8 +38,8 @@ before_install:
 
 install:
   # CMake 3.4
-  - mkdir ~/etc
-  - pushd ~/etc
+  - mkdir etc
+  - pushd etc
   - curl -L $CMAKE_URL | tar xz &
   - curl -L $AUTOWIRING_URL | tar xz &
   - wait
@@ -59,9 +55,9 @@ before_script:
 script:
   # Build LeapHTTP, run unit tests, and install
   - >
-    ~/etc/$CMAKE_DIRNAME/bin/cmake .
+    etc/$CMAKE_DIRNAME/bin/cmake .
     -DCMAKE_BUILD_TYPE=Release
-    -DCMAKE_PREFIX_PATH:PATH=~/etc/
+    -DCMAKE_PREFIX_PATH:PATH=etc/
   - make -j 4 LeapHTTPTest || make LeapHTTPTest
   - ctest --output-on-failure --timeout 30
 
