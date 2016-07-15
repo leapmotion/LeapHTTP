@@ -1,4 +1,4 @@
-// Copyright (c) 2010 - 2014 Leap Motion. All rights reserved. Proprietary and confidential.
+// Copyright (C) 2012-2016 Leap Motion, Inc. All rights reserved.
 #include "stdafx.h"
 #include <autowiring/C++11/cpp11.h>
 #include <leaphttp/NetworkSession.h>
