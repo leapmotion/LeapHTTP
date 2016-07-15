@@ -22,6 +22,8 @@ matrix:
           - libc6-i386
           - libboost-program-options1.55-dev
           - libboost1.55-all-dev
+          - curl
+          - zlib1g-dev
   - os: osx
     env:
     - _CC: clang
