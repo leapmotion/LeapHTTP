@@ -55,12 +55,12 @@ before_script:
   - export LD_LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/4.8:$LD_LIBRARY_PATH
 
 script:
-  # Build LeapResource, run unit tests, and install
+  # Build LeapHTTP, run unit tests, and install
   - >
     ~/etc/$CMAKE_DIRNAME/bin/cmake .
     -DCMAKE_BUILD_TYPE=Release
     -DCMAKE_PREFIX_PATH:PATH=~/etc/
-  - make -j 4 LeapResourceTest || make LeapResourceTest
+  - make -j 4 LeapHTTPTest || make LeapHTTPTest
   - ctest --output-on-failure --timeout 30
 
 after_failure:
