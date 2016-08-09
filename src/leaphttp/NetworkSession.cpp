@@ -32,124 +32,125 @@ std::ostream& NetworkSession::sendRequest(HttpRequest& request)
   const Url url = request.url();
 
   shutdown();
+  if (!url.isValid() || !setState(STATE_INITIALIZING))
+    return m_outputNetworkStream;
 
-  if (url.isValid() && setState(STATE_INITIALIZING)) {
-    m_inputBuffer.open();
-    m_outputBuffer.open();
-    m_outputNetworkStream.clear();
-    m_inputNetworkStream.clear();
-    m_response = HttpResponse();
-    m_receivedContinue = false;
-    m_receivedHeader = false;
-    m_response.setUrl(url);
-    m_proxies = m_networkSessionManager ? m_networkSessionManager->proxies() : std::queue<Url>();
+  m_inputBuffer.open();
+  m_outputBuffer.open();
+  m_outputNetworkStream.clear();
+  m_inputNetworkStream.clear();
+  m_response = HttpResponse();
+  m_receivedContinue = false;
+  m_receivedHeader = false;
+  m_response.setUrl(url);
+  m_proxies = m_networkSessionManager ? m_networkSessionManager->proxies() : std::queue<Url>();
 
-    curl_easy_setopt(m_easy, CURLOPT_URL, url.toString().c_str());
-    curl_easy_setopt(m_easy, CURLOPT_VERBOSE, 0L);
-    curl_easy_setopt(m_easy, CURLOPT_HEADER, 0L);
-    curl_easy_setopt(m_easy, CURLOPT_NOPROGRESS, 1L);
-    curl_easy_setopt(m_easy, CURLOPT_NOSIGNAL, 1L);
-    curl_easy_setopt(m_easy, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(m_easy, CURLOPT_MAXREDIRS, 15L);
-    curl_easy_setopt(m_easy, CURLOPT_HEADERFUNCTION, readHeaderStatic);
-    curl_easy_setopt(m_easy, CURLOPT_HEADERDATA, this);
-    curl_easy_setopt(m_easy, CURLOPT_READFUNCTION, readContentStatic);
-    curl_easy_setopt(m_easy, CURLOPT_READDATA, this);
-    curl_easy_setopt(m_easy, CURLOPT_WRITEFUNCTION, writeContentStatic);
-    curl_easy_setopt(m_easy, CURLOPT_WRITEDATA, this);
-    curl_easy_setopt(m_easy, CURLOPT_SSLCERTTYPE, "PEM");
-    curl_easy_setopt(m_easy, CURLOPT_SSL_VERIFYHOST, 2L);
-    curl_easy_setopt(m_easy, CURLOPT_SSL_CTX_FUNCTION, caCertificatesStatic);
-    curl_easy_setopt(m_easy, CURLOPT_SSL_CTX_DATA, this);
-    curl_easy_setopt(m_easy, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-    curl_easy_setopt(m_easy, CURLOPT_USERAGENT, request.userAgent().c_str());
-    curl_easy_setopt(m_easy, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-    curl_easy_setopt(m_easy, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
-    curl_easy_setopt(m_easy, CURLOPT_PRIVATE, this);
+  curl_easy_setopt(m_easy, CURLOPT_URL, url.toString().c_str());
+  curl_easy_setopt(m_easy, CURLOPT_VERBOSE, 0L);
+  curl_easy_setopt(m_easy, CURLOPT_HEADER, 0L);
+  curl_easy_setopt(m_easy, CURLOPT_NOPROGRESS, 1L);
+  curl_easy_setopt(m_easy, CURLOPT_NOSIGNAL, 1L);
+  curl_easy_setopt(m_easy, CURLOPT_FOLLOWLOCATION, 1L);
+  curl_easy_setopt(m_easy, CURLOPT_MAXREDIRS, 15L);
+  curl_easy_setopt(m_easy, CURLOPT_HEADERFUNCTION, readHeaderStatic);
+  curl_easy_setopt(m_easy, CURLOPT_HEADERDATA, this);
+  curl_easy_setopt(m_easy, CURLOPT_READFUNCTION, readContentStatic);
+  curl_easy_setopt(m_easy, CURLOPT_READDATA, this);
+  curl_easy_setopt(m_easy, CURLOPT_WRITEFUNCTION, writeContentStatic);
+  curl_easy_setopt(m_easy, CURLOPT_WRITEDATA, this);
+  curl_easy_setopt(m_easy, CURLOPT_SSLCERTTYPE, "PEM");
+  curl_easy_setopt(m_easy, CURLOPT_SSL_VERIFYHOST, 2L);
+  curl_easy_setopt(m_easy, CURLOPT_SSL_CTX_FUNCTION, caCertificatesStatic);
+  curl_easy_setopt(m_easy, CURLOPT_SSL_CTX_DATA, this);
+  curl_easy_setopt(m_easy, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
+  curl_easy_setopt(m_easy, CURLOPT_USERAGENT, request.userAgent().c_str());
+  curl_easy_setopt(m_easy, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+  curl_easy_setopt(m_easy, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+  curl_easy_setopt(m_easy, CURLOPT_PRIVATE, this);
 
-    setProxyOption();
+  setProxyOption();
 
-    // Set the HTTP method
-    const std::string method = request.method();
-    bool useChunkedTransferEncoding = false;
-    bool sendContent = false;
-    bool expectContinue = false;
+  // Set the HTTP method
+  const std::string method = request.method();
+  bool useChunkedTransferEncoding = false;
+  bool sendContent = false;
+  bool expectContinue = false;
 
-    if (method == HttpRequest::HTTP_GET) {
-      curl_easy_setopt(m_easy, CURLOPT_HTTPGET, 1L);
-    } else if (method == HttpRequest::HTTP_POST) {
-      curl_easy_setopt(m_easy, CURLOPT_POST, 1L);
-      curl_easy_setopt(m_easy, CURLOPT_POSTFIELDS, nullptr);
+  if (method == HttpRequest::HTTP_GET) {
+    curl_easy_setopt(m_easy, CURLOPT_HTTPGET, 1L);
+  } else if (method == HttpRequest::HTTP_POST) {
+    curl_easy_setopt(m_easy, CURLOPT_POST, 1L);
+    curl_easy_setopt(m_easy, CURLOPT_POSTFIELDS, nullptr);
+    useChunkedTransferEncoding = request.useChunkedTransferEncoding();
+    if (!useChunkedTransferEncoding) {
+      long postFieldSize = static_cast<long>(request.contentLength());
+      curl_easy_setopt(m_easy, CURLOPT_POSTFIELDSIZE, postFieldSize);
+    }
+    sendContent = true;
+  } else if (!method.empty()) {
+    curl_easy_setopt(m_easy, CURLOPT_CUSTOMREQUEST, method.c_str());
+    if (method == HttpRequest::HTTP_PUT) {
+      curl_easy_setopt(m_easy, CURLOPT_UPLOAD, 1L);
       useChunkedTransferEncoding = request.useChunkedTransferEncoding();
       if (!useChunkedTransferEncoding) {
-        long postFieldSize = static_cast<long>(request.contentLength());
-        curl_easy_setopt(m_easy, CURLOPT_POSTFIELDSIZE, postFieldSize);
+        long inFileSize = static_cast<long>(request.contentLength());
+        curl_easy_setopt(m_easy, CURLOPT_INFILESIZE, inFileSize);
       }
       sendContent = true;
-    } else if (!method.empty()) {
-      curl_easy_setopt(m_easy, CURLOPT_CUSTOMREQUEST, method.c_str());
-      if (method == HttpRequest::HTTP_PUT) {
-        curl_easy_setopt(m_easy, CURLOPT_UPLOAD, 1L);
-        useChunkedTransferEncoding = request.useChunkedTransferEncoding();
-        if (!useChunkedTransferEncoding) {
-          long inFileSize = static_cast<long>(request.contentLength());
-          curl_easy_setopt(m_easy, CURLOPT_INFILESIZE, inFileSize);
-        }
-        sendContent = true;
-      }
-    }
-    if (useChunkedTransferEncoding) {
-      m_list = curl_slist_append(m_list, "Transfer-Encoding: chunked");
-      expectContinue = request.expectContinue();
-    }
-    if (expectContinue) {
-      m_list = curl_slist_append(m_list, "Expect: 100-continue");
-    } else {
-      // Remove "Expect: 100-continue" entry that is automatically added for POST/PUT calls
-      m_list = curl_slist_append(m_list, "Expect:");
-    }
-    // Append Cookies
-    auto cookies = request.cookies();
-    if (!cookies.empty()) {
-      for (const auto& cookie : cookies) {
-        m_list = curl_slist_append(m_list, ("Cookie: " + cookie.toString()).c_str());
-      }
-    }
-    // Append user-specified header fields
-    auto entries = request.headers();
-    if (!entries.empty()) {
-      for (const auto& entry : entries) {
-        m_list = curl_slist_append(m_list, entry.c_str());
-      }
-    }
-    curl_easy_setopt(m_easy, CURLOPT_HTTPHEADER, m_list);
-
-    if (m_networkSessionManager && m_networkSessionManager->addNetworkSession(*this)) {
-      try {
-        if (setState(STATE_RUNNING)) {
-          throw std::exception();
-        }
-        bool closeOutputBuffer = true;
-        if (sendContent) {
-          if (expectContinue) {
-            std::unique_lock<std::mutex> headerLock(m_headerMutex);
-            if (!m_receivedContinue) {
-              m_headerCondition.wait(headerLock);
-            }
-            closeOutputBuffer = !m_receivedContinue;
-          } else {
-            closeOutputBuffer = false;
-          }
-        }
-        if (closeOutputBuffer) {
-          m_outputBuffer.close();
-          m_outputNetworkStream.setstate(std::ios::eofbit);
-        }
-      } catch (...) {
-        shutdown();
-      }
     }
   }
+  if (useChunkedTransferEncoding) {
+    m_list = curl_slist_append(m_list, "Transfer-Encoding: chunked");
+    expectContinue = request.expectContinue();
+  }
+  if (expectContinue) {
+    m_list = curl_slist_append(m_list, "Expect: 100-continue");
+  } else {
+    // Remove "Expect: 100-continue" entry that is automatically added for POST/PUT calls
+    m_list = curl_slist_append(m_list, "Expect:");
+  }
+  // Append Cookies
+  auto cookies = request.cookies();
+  if (!cookies.empty()) {
+    for (const auto& cookie : cookies) {
+      m_list = curl_slist_append(m_list, ("Cookie: " + cookie.toString()).c_str());
+    }
+  }
+  // Append user-specified header fields
+  auto entries = request.headers();
+  if (!entries.empty()) {
+    for (const auto& entry : entries) {
+      m_list = curl_slist_append(m_list, entry.c_str());
+    }
+  }
+  curl_easy_setopt(m_easy, CURLOPT_HTTPHEADER, m_list);
+
+  if (m_networkSessionManager && m_networkSessionManager->addNetworkSession(*this)) {
+    try {
+      if (setState(STATE_RUNNING)) {
+        throw std::exception();
+      }
+      bool closeOutputBuffer = true;
+      if (sendContent) {
+        if (expectContinue) {
+          std::unique_lock<std::mutex> headerLock(m_headerMutex);
+          if (!m_receivedContinue) {
+            m_headerCondition.wait(headerLock);
+          }
+          closeOutputBuffer = !m_receivedContinue;
+        } else {
+          closeOutputBuffer = false;
+        }
+      }
+      if (closeOutputBuffer) {
+        m_outputBuffer.close();
+        m_outputNetworkStream.setstate(std::ios::eofbit);
+      }
+    } catch (...) {
+      shutdown();
+    }
+  }
+
   return m_outputNetworkStream;
 }
 
