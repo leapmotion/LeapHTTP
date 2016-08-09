@@ -74,12 +74,8 @@ void HttpHeader::setHeader(const std::string& key, const std::string& value, boo
       append = false; // Nothing to append to, just insert it
     }
   }
-  if (!append) {
-    std::vector<std::string> entries;
-    entries.reserve(1);
-    entries.push_back(value);
-    m_headers[key] = entries;
-  }
+  if (!append)
+	  m_headers[key] = { value };
 }
 
 Cookie HttpHeader::cookie(const std::string& name) const
