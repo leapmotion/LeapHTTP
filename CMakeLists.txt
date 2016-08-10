@@ -11,7 +11,9 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # OpenSSL is retarded, so we have to use a manual path here if the default search fails
 set(OPENSSL_USE_STATIC_LIBS TRUE)
-set(OPENSSL_ROOT_DIR ${CMAKE_PREFIX_PATH}/openssl)
+if(NOT DEFINED OPENSSL_ROOT_DIR)
+  set(OPENSSL_ROOT_DIR ${CMAKE_PREFIX_PATH}/openssl)
+endif()
 find_package(OpenSSL REQUIRED)
 
 # Standard dependencies:
