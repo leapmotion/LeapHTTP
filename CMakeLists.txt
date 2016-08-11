@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.4)
 include(version.cmake)
-project(LeapHTTP VERSION ${LeapHTTP_VERSION})
 include("standard/Standard.cmake")
+
+standard_project(LeapHTTP VERSION ${LeapHTTP_VERSION})
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake-modules")
 include(AddPCH)
@@ -17,9 +18,6 @@ find_package(OpenSSL REQUIRED)
 find_package(autowiring 1.0.2 REQUIRED)
 find_package(ZLIB 1.2.8 REQUIRED)
 find_package(CURL 7.36.0 REQUIRED)
-
-# Standard calls
-set_standard_output_variables()
 
 # We have unit test projects via googletest, they're added in the places where they are defined
 enable_testing()
