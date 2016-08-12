@@ -16,6 +16,7 @@ matrix:
       apt:
         sources:
           - ubuntu-toolchain-r-test
+          - ppa:costamagnagianfranco/ettercap-stable-backports #Required for curl 7.36
           - boost-latest
         packages:
           - gcc-4.9
