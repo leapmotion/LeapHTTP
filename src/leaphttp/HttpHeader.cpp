@@ -75,7 +75,7 @@ void HttpHeader::setHeader(const std::string& key, const std::string& value, boo
     }
   }
   if (!append)
-	  m_headers[key] = { value };
+    m_headers[key] = { value };
 }
 
 Cookie HttpHeader::cookie(const std::string& name) const
