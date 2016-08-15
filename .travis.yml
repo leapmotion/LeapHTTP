@@ -22,14 +22,6 @@ matrix:
           - gcc-4.9
           - g++-4.9
           - libcurl3
-  - os: osx
-    env:
-    - _CC: clang
-    - _CXX: clang++
-    - CMAKE_URL=https://cmake.org/files/v3.4/cmake-3.4.0-Darwin-x86_64.tar.gz
-    - CMAKE_DIRNAME=cmake-3.4.0-Darwin-x86_64/CMake.app/Contents
-    - AUTOWIRING_URL=https://github.com/leapmotion/autowiring/releases/download/v1.0.3/autowiring-1.0.3-Darwin.tar.gz
-    - AUTOWIRING_DIRNAME=autowiring-1.0.3-Darwin
 
 before_install:
   # Enforce whitespace guidelines
