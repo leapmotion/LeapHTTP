@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include <autowiring/C++11/cpp11.h>
 #include <leaphttp/NetworkSession.h>
+#include <leaphttp/NetworkSessionManager.h>
 #include <leaphttp/NetworkTransferManager.h>
 #include <leaphttp/HttpTransferDownload.h>
 #include <leaphttp/HttpTransferPostString.h>
@@ -29,13 +30,14 @@ class NetworkServicesContextTest :
     NetworkServicesContextTest() {
       // Force initialization of the path parsing subsystems
       std::filesystem::path p = GetTemporaryPath();
+      AddRootCertificateAuthority();
       AutoCurrentContext()->Initiate();
     }
+
     ~NetworkServicesContextTest() {
       AutoCurrentContext()->SignalShutdown();
       AutoCurrentContext()->Wait();
     }
-
 
     static std::wstring MakeRandomName(void) {
       static uint32_t s_counter = 0;
@@ -54,7 +56,32 @@ class NetworkServicesContextTest :
       return { rv.begin(), rv.end() };
     }
 
+    void AddRootCertificateAuthority() {
+      static const std::string cert_DigiCert_Global_Root_CA =
+        "-----BEGIN CERTIFICATE-----\n"
+        "MIIDrzCCApegAwIBAgIQCDvgVpBCRrGhdWrJWZHHSjANBgkqhkiG9w0BAQUFADBhMQswCQYDVQQG\n"
+        "EwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3d3cuZGlnaWNlcnQuY29tMSAw\n"
+        "HgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBDQTAeFw0wNjExMTAwMDAwMDBaFw0zMTExMTAw\n"
+        "MDAwMDBaMGExCzAJBgNVBAYTAlVTMRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3\n"
+        "dy5kaWdpY2VydC5jb20xIDAeBgNVBAMTF0RpZ2lDZXJ0IEdsb2JhbCBSb290IENBMIIBIjANBgkq\n"
+        "hkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4jvhEXLeqKTTo1eqUKKPC3eQyaKl7hLOllsBCSDMAZOn\n"
+        "TjC3U/dDxGkAV53ijSLdhwZAAIEJzs4bg7/fzTtxRuLWZscFs3YnFo97nh6Vfe63SKMI2tavegw5\n"
+        "BmV/Sl0fvBf4q77uKNd0f3p4mVmFaG5cIzJLv07A6Fpt43C/dxC//AH2hdmoRBBYMql1GNXRor5H\n"
+        "4idq9Joz+EkIYIvUX7Q6hL+hqkpMfT7PT19sdl6gSzeRntwi5m3OFBqOasv+zbMUZBfHWymeMr/y\n"
+        "7vrTC0LUq7dBMtoM1O/4gdW7jVg/tRvoSSiicNoxBN33shbyTApOB6jtSj1etX+jkMOvJwIDAQAB\n"
+        "o2MwYTAOBgNVHQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUA95QNVbRTLtm\n"
+        "8KPiGxvDl7I90VUwHwYDVR0jBBgwFoAUA95QNVbRTLtm8KPiGxvDl7I90VUwDQYJKoZIhvcNAQEF\n"
+        "BQADggEBAMucN6pIExIK+t1EnE9SsPTfrgT1eXkIoyQY/EsrhMAtudXH/vTBH1jLuG2cenTnmCmr\n"
+        "EbXjcKChzUyImZOMkXDiqw8cvpOp/2PV5Adg06O/nVsJ8dWO41P0jmP6P6fbtGbfYmbW0W5BjfIt\n"
+        "tep3Sp+dWOIrWcBAI+0tKIJFPnlUkiaY4IBIqDfv8NZ5YBberOgOzW6sRBc4L0na4UU+Krk2U886\n"
+        "UAb3LujEV0lsYSEY1QSteDwsOoBrp+uvFRTp2InBuThs4pFsiv9kuXclVzDAGySj4dzp30d8tbQk\n"
+        "CAUw7C29C79Fv1C5qfPrmAESrciIxpg0X40KPMbp1ZWVbd4=\n"
+        "-----END CERTIFICATE-----\n";
+      m_networkSessionManager->addCaCertificate(cert_DigiCert_Global_Root_CA);
+    }
+
   protected:
+    AutoRequired<NetworkSessionManager> m_networkSessionManager;
     AutoRequired<NetworkTransferManager> m_networkTransferManager;
 };
 
@@ -114,8 +141,7 @@ TEST_F(NetworkServicesContextTest, VerifyHttpGetTransfers)
   const char* sites[] = {
     "http://www.abebooks.com/",
     "http://www.cnn.com/",
-    "http://www.msn.com/",
-    "http://www.walgreens.com/"
+    "http://www.msn.com/"
   };
   const int numSites = sizeof(sites)/sizeof(sites[0]);
   std::shared_ptr<HttpTransferGetTest> transfers[numSites];
@@ -263,8 +289,7 @@ TEST_F(NetworkServicesContextTest, VerifyHttpSimultaneousTransfers)
   const char* sites[] = {
     "http://www.abebooks.com/",
     "http://www.cnn.com/",
-    "http://www.msn.com/",
-    "http://www.walgreens.com/"
+    "http://www.msn.com/"
   };
 
   for (auto site : sites) {
