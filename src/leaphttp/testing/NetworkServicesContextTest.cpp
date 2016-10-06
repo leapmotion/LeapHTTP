@@ -114,8 +114,7 @@ TEST_F(NetworkServicesContextTest, VerifyHttpGetTransfers)
   const char* sites[] = {
     "http://www.abebooks.com/",
     "http://www.cnn.com/",
-    "http://www.msn.com/",
-    "http://www.walgreens.com/"
+    "http://www.msn.com/"
   };
   const int numSites = sizeof(sites)/sizeof(sites[0]);
   std::shared_ptr<HttpTransferGetTest> transfers[numSites];
@@ -263,8 +262,7 @@ TEST_F(NetworkServicesContextTest, VerifyHttpSimultaneousTransfers)
   const char* sites[] = {
     "http://www.abebooks.com/",
     "http://www.cnn.com/",
-    "http://www.msn.com/",
-    "http://www.walgreens.com/"
+    "http://www.msn.com/"
   };
 
   for (auto site : sites) {
