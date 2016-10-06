@@ -19,6 +19,8 @@ matrix:
           - libboost-filesystem-dev
           - gcc-4.8
           - g++-4.8
+          - zlib1g-dev
+          - libcurl4-gnutls-dev
   - os: osx
     env:
     - _CC: clang
@@ -30,6 +32,9 @@ matrix:
       apt:
         packages:
           - libboost-filesystem-dev
+          - zlib1g-dev
+          - libcurl4-gnutls-dev
+          - libssl-dev
 
 before_install:
   # Enforce whitespace guidelines
