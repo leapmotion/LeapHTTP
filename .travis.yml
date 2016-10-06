@@ -1,0 +1,57 @@
+language: cpp
+sudo: true
+
+matrix:
+  include:
+  - os: linux
+    env:
+    - _CC: gcc-4.8
+    - _CXX: g++-4.8
+    - CMAKE_URL=http://cmake.org/files/v3.4/cmake-3.4.0-Linux-x86_64.tar.gz
+    - AUTOWIRING_URL=https://github.com/leapmotion/autowiring/releases/download/v1.0.3/autowiring-1.0.3-Linux-amd64.tar.gz
+    - CMAKE_DIRNAME=cmake-3.4.0-Linux-x86_64
+    addons:
+      apt:
+        sources:
+          - boost-latest
+          - ubuntu-toolchain-r-test
+        packages:
+          - libboost-filesystem-dev
+          - gcc-4.8
+          - g++-4.8
+
+before_install:
+  # Enforce whitespace guidelines
+  - ./scripts/whitespace_check.sh
+
+  # Enforce Leap Motion copyright notice
+  - ./scripts/copyright_check.sh
+
+  # Avoid trailing newlines
+  - ./scripts/trailingnewline_check.sh
+
+  # Install curl-7.36.0 from custom APT repo
+  - sudo add-apt-repository ppa:costamagnagianfranco/ettercap-stable-backports -y
+  - sudo apt-get update
+  - sudo apt-get install curl -y
+
+install:
+  # CMake 3.4
+  - pushd ~
+  - curl -L $CMAKE_URL | tar xz
+  - curl -L $AUTOWIRING_URL | tar xz
+  - popd
+
+before_script:
+  - export CC=$_CC
+  - export CXX=$_CXX
+  - $CXX --version
+  - export CPATH=/usr/include/c++/4.8:/usr/include/x86_64-linux-gnu/c++/4.8/:$CPATH
+  - export LD_LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/4.8:$LD_LIBRARY_PATH
+
+script:
+  # Build LeapHTTP
+  - mkdir b
+  - cd b
+  - ~/$CMAKE_DIRNAME/bin/cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH:PATH=~ -DCMAKE_INSTALL_PREFIX:PATH=~/leaphttp/
+  - make -j 4 LeapHTTP || make LeapHTTP
