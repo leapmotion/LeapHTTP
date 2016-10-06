@@ -33,11 +33,11 @@ class NetworkServicesContextTest :
       AddRootCertificateAuthority();
       AutoCurrentContext()->Initiate();
     }
+
     ~NetworkServicesContextTest() {
       AutoCurrentContext()->SignalShutdown();
       AutoCurrentContext()->Wait();
     }
-
 
     static std::wstring MakeRandomName(void) {
       static uint32_t s_counter = 0;
