@@ -46,7 +46,6 @@ install:
   - pushd ~
   - curl -L $CMAKE_URL | tar xz
   - curl -L $AUTOWIRING_URL | tar xz
-  - curl -L $LEAPSERIAL_URL | tar xz
   - popd
 
 before_script:
