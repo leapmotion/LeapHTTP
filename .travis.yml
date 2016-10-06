@@ -19,7 +19,6 @@ matrix:
           - libboost-filesystem-dev
           - gcc-4.8
           - g++-4.8
-          - zlib1g-dev
 
 before_install:
   # Enforce whitespace guidelines
@@ -55,10 +54,4 @@ script:
   - mkdir b
   - cd b
   - ~/$CMAKE_DIRNAME/bin/cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH:PATH=~ -DCMAKE_INSTALL_PREFIX:PATH=~/leaphttp/
-  - make -j 4 || make
-  - ctest --output-on-failure --timeout 30
-  - make install > logfile || cat logfile
-  - cpack || (cat _CPack_Packages/Linux/TGZ/InstallOutput.log; exit 3)
-
-after_failure:
-  - cat Testing/Temporary/LastTest.log 2> /dev/null
+  - make -j 4 LeapHTTP || make LeapHTTP
