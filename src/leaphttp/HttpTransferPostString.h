@@ -24,6 +24,23 @@ public:
     }
     request.setMethod(HttpRequest::HTTP_POST);
   }
+  HttpTransferPostString(
+    std::string userAgent,
+    const Url& url,
+    std::string&& content,
+    const std::map<std::string, std::string>& headers = {}
+  ) :
+    HttpTransferBase{ {std::move(userAgent), url} },
+    m_content(std::move(content))
+  {
+    HttpRequest& request = this->request();
+    request.setUrl(url);
+    request.setContentLength(content.size());
+    for (const auto& entry : headers) {
+      request.setHeader(entry.first, entry.second);
+    }
+    request.setMethod(HttpRequest::HTTP_POST);
+  }
   virtual ~HttpTransferPostString() = default;
 
   size_t onWrite(char* buffer, size_t bufferSize) override {
