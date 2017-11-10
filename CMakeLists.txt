@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.8)
 include(version.cmake)
 include("standard/Standard.cmake")
 
@@ -17,7 +17,7 @@ endif()
 find_package(OpenSSL REQUIRED)
 
 # Standard dependencies:
-find_package(autowiring 1.0.4 REQUIRED)
+find_package(autowiring 1.0.4 EXACT REQUIRED)
 find_package(ZLIB 1.2.0 REQUIRED)
 find_package(CURL 7.35.0 REQUIRED)
 
