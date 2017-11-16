@@ -8,7 +8,7 @@ matrix:
     - _CC: gcc-4.8
     - _CXX: g++-4.8
     - CMAKE_URL=http://cmake.org/files/v3.8/cmake-3.8.2-Linux-x86_64.tar.gz
-    - AUTOWIRING_URL=https://github.com/leapmotion/autowiring/releases/download/v1.0.4/autowiring-1.0.4-Linux-amd64.tar.gz
+    - AUTOWIRING_URL=https://github.com/leapmotion/autowiring/releases/download/v1.0.5/autowiring-1.0.5-Linux-amd64.tar.gz
     - CMAKE_DIRNAME=cmake-3.8.2-Linux-x86_64
     addons:
       apt:
@@ -19,6 +19,7 @@ matrix:
           - libboost-filesystem-dev
           - gcc-4.8
           - g++-4.8
+          - curl
 
 before_install:
   # Enforce whitespace guidelines
@@ -29,11 +30,6 @@ before_install:
 
   # Avoid trailing newlines
   - ./scripts/trailingnewline_check.sh
-
-  # Install curl-7.36.0 from custom APT repo
-  - sudo add-apt-repository ppa:costamagnagianfranco/ettercap-stable-backports -y
-  - sudo apt-get update
-  - sudo apt-get install curl -y
 
 install:
   # CMake 3.4
