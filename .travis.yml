@@ -31,7 +31,6 @@ before_install:
   - ./scripts/trailingnewline_check.sh
 
   # Install curl-7.36.0 from custom APT repo
-  - sudo add-apt-repository ppa:costamagnagianfranco/ettercap-stable-backports -y
   - sudo apt-get update
   - sudo apt-get install curl -y
 
