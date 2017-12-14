@@ -22,6 +22,7 @@ find_package(ZLIB 1.2.0 REQUIRED)
 find_package(CURL 7.35.0 REQUIRED)
 
 # We have unit test projects via googletest, they're added in the places where they are defined
+add_definitions(-DGTEST_HAS_TR1_TUPLE=0)
 enable_testing()
 
 # Recurse through source directories
