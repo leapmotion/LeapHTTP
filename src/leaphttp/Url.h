@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2016 Leap Motion, Inc. All rights reserved.
+// Copyright (C) 2012-2018 Leap Motion, Inc. All rights reserved.
 #if !defined(__Url_h__)
 #define __Url_h__
 
