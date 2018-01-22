@@ -139,7 +139,6 @@ private:
 TEST_F(NetworkServicesContextTest, VerifyHttpGetTransfers)
 {
   const char* sites[] = {
-    "http://www.cnn.com/",
     "http://www.msn.com/"
   };
   const int numSites = sizeof(sites)/sizeof(sites[0]);
@@ -286,7 +285,6 @@ TEST_F(NetworkServicesContextTest, VerifyHttpsGetFailure)
 TEST_F(NetworkServicesContextTest, VerifyHttpSimultaneousTransfers)
 {
   const char* sites[] = {
-    "http://www.cnn.com/",
     "http://www.msn.com/"
   };
 
