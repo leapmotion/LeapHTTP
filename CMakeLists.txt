@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 include(version.cmake)
 include("standard/Standard.cmake")
 
-standard_project(LeapHTTP VERSION ${LeapHTTP_VERSION})
+project(LeapHTTP VERSION ${LeapHTTP_VERSION})
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake-modules")
 include(AddPCH)
