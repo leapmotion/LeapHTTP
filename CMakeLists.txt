@@ -17,7 +17,7 @@ endif()
 find_package(OpenSSL REQUIRED)
 
 # Standard dependencies:
-find_package(autowiring 1.0.6 EXACT REQUIRED)
+find_package(autowiring 1.1.0 EXACT REQUIRED)
 find_package(ZLIB 1.2.0 REQUIRED)
 find_package(CURL 7.35.0 REQUIRED)
 
